@@ -23,16 +23,23 @@ export class ItemsWithSpells5eItemSheet {
    * Handles the item sheet render hooks.
    */
   static init() {
-    Hooks.on('renderItemSheet', (app, html) => {
+    function includeTab(itemType) {
       let include = false;
       try {
-        include = !!game.settings.get(ItemsWithSpells5e.MODULE_ID, `includeItemType${app.item.type.titleCase()}`);
+        include = !!game.settings.get(
+          ItemsWithSpells5e.MODULE_ID,
+          `includeItemType${itemType.titleCase()}`
+        );
       } catch {}
-      if (!include) return;
+      return include;
+    }
+    Hooks.on('renderItemSheet', (app, html) => {
+      // stop if item type is not included or this sheet is tidy5e
+      if ( game.modules.get('tidy5e-sheet')?.api?.isTidy5eItemSheet(app) || !includeTab(app.item.type) ) return; // don't do this for tidy5e
 
       const instance = ItemsWithSpells5eItemSheet.instances.get(app.appId);
       if (instance) {
-        instance.renderLite();
+        instance.renderLite(app, instance);
         if (instance._shouldOpenSpellsTab) {
           app._tabs?.[0]?.activate?.('spells');
           instance._shouldOpenSpellsTab = false;
@@ -41,7 +48,7 @@ export class ItemsWithSpells5eItemSheet {
       }
       const newInstance = new ItemsWithSpells5eItemSheet(app, html);
       ItemsWithSpells5eItemSheet.instances.set(app.appId, newInstance);
-      return newInstance.renderLite();
+      return newInstance.renderLite(app, newInstance);
     });
 
     // clean up instances as sheets are closed
@@ -50,8 +57,37 @@ export class ItemsWithSpells5eItemSheet {
         return ItemsWithSpells5eItemSheet.instances.delete(app.appId);
       }
     });
+
+    // tidy5e
+    Hooks.once('tidy5e-sheet.ready', (api) => {
+      const myTab = new api.models.HtmlTab({
+        title: game.i18n.localize("TYPES.Item.spellPl"),
+        tabId: 'items-with-spells-5e',
+        html: '',
+        enabled(data) {
+          return includeTab(data.item.type);
+        },
+        onRender(params) {
+          if (!includeTab(params.data.item.type)) return;
+          let app = params.app;
+          let html = [params.element];
+          const instance = ItemsWithSpells5eItemSheet.instances.get(app.appId);
+          if (instance) {
+            instance.renderHeavy(params.tabContentsElement);
+          } else {
+            const newInstance = new ItemsWithSpells5eItemSheet(app, html);
+            ItemsWithSpells5eItemSheet.instances.set(app.appId, newInstance);
+            newInstance.renderHeavy(params.tabContentsElement);
+          };
+        }
+      });
+      api.registerItemTab(myTab, { autoHeight : true });
+    });
   }
 
+  /**
+   * Renders the spell tab template to be injected
+   */
   /**
    * Renders the spell tab template to be injected
    */
@@ -66,6 +102,7 @@ export class ItemsWithSpells5eItemSheet {
       },
       isOwner: this.item.isOwner,
       isOwned: this.item.isOwned,
+      concealDetails : !game.user.isGM && (this.item.system.identified === false)
     });
   }
 
@@ -128,7 +165,7 @@ export class ItemsWithSpells5eItemSheet {
    * Synchronous part of the render which calls the asynchronous `renderHeavy`
    * This allows for less delay during the update -> renderItemSheet -> set tab cycle
    */
-  renderLite() {
+  renderLite(app) {
     // Update the nav menu
     const div = document.createElement("DIV");
     div.innerHTML = `<a class="item" data-tab="spells">${game.i18n.localize("TYPES.Item.spellPl")}</a>`;

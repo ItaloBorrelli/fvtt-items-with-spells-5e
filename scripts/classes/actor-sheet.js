@@ -25,6 +25,7 @@ export class ItemsWithSpells5eActorSheet {
     });
     const spellbook = wrapped(data, nonItemSpells);
     const order = game.settings.get(ItemsWithSpells5e.MODULE_ID, "sortOrder") ? 20 : -5;
+    const excludeUnequipped = game.settings.get(ItemsWithSpells5e.MODULE_ID, "excludeUnequipped");
     const createSection = (iws, uses = {}) => {
       return {
         order: order,
@@ -37,7 +38,7 @@ export class ItemsWithSpells5eActorSheet {
         slots: uses.max ?? "-",
         override: 0,
         dataset: {"iws-item-id": iws.id},
-        prop: "item"
+        prop: "item-"+iws.id
       };
     };
 
@@ -54,8 +55,8 @@ export class ItemsWithSpells5eActorSheet {
 
     // create a new spellbook section for each item with spells attached
     itemsWithSpells.forEach((iws) => {
-      // If the item requires attunement, but is not attuned, do not show spells.
-      if (iws.system.attunement === CONFIG.DND5E.attunementTypes.REQUIRED) return;
+      // Filter out items that are not equipped, not attuned (but require it), or not identified
+      if (!iws.system.identified || (excludeUnequipped && !iws.system.equipped) || iws.system.attunement === CONFIG.DND5E.attunementTypes.REQUIRED) return;
       const section = createSection(iws, iws.system.uses);
       section.spells = spellItems.filter(spell => {
         const parentId = spell.getFlag(ItemsWithSpells5e.MODULE_ID, "parent-item");

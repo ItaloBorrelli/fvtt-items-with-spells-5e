@@ -44,6 +44,16 @@ export function _registerSettings() {
     label: "IWS.SETTINGS.ITEM_EXCLUSION.NAME",
     restricted: true
   });
+
+  game.settings.register(ItemsWithSpells5e.MODULE_ID, "excludeUnequipped", {
+    name: "IWS.SETTINGS.EXCLUDE_UNEQUIPPED.NAME",
+    hint: "IWS.SETTINGS.EXCLUDE_UNEQUIPPED.HINT",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: true,
+    requiresReload: false
+  });
 }
 
 class IWS_TypeSettings extends FormApplication {

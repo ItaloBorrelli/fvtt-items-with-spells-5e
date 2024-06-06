@@ -17,6 +17,12 @@
       "url": "https://github.com/krbz999",
       "patreon": "https://www.patreon.com/zhell",
       "ko-fi": "https://ko-fi.com/zhell"
+    },
+    {
+        "name": "MorePurpleMoreBetter",
+        "discord": "morepurplemorebetter",
+        "url": "https://github.com/morepurplemorebetter",
+        "patreon": "https://www.patreon.com/morepurplemorebetter"
     }
   ],
   "esmodules": [
@@ -48,8 +54,8 @@
         "id": "dnd5e",
         "type": "system",
         "compatibility": {
-          "minimum": "2.4.0",
-          "maximum": "2.4.9"
+          "minimum": "3.0.0",
+          "maximum": "3.1.9"
         }
       }
     ],
@@ -67,7 +73,7 @@
   "download": "AUTOMATIC",
   "manifest": "https://github.com/krbz999/foundryvtt-items-with-spells-5e/releases/latest/download/module.json",
   "readme": "https://raw.githubusercontent.com/krbz999/foundryvtt-items-with-spells-5e/main/README.md",
-  "url": "https://github.com/krbz999/foundryvtt-items-with-spells-5e",
+  "url": "https://github.com/morepurplemorebetter/foundryvtt-items-with-spells-5e",
   "flags": {
     "fvttdevleague": {
       "package-jam": 2022

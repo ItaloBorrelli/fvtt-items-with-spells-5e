@@ -167,7 +167,7 @@ export class ItemsWithSpells5eItem {
       // 0. see if the uuid is already on the actor
       // 1. create the dropped uuid on the Actor's item list (OR update that item to be a child of this one)
       // 2. get the new uuid from the created item
-      // 3. add that uuid to this item's flags\
+      // 3. add that uuid to this item's flags
       const fullItemData = await fromUuid(uuid);
 
       if (!fullItemData) {
