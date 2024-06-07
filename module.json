@@ -54,7 +54,7 @@
         "id": "dnd5e",
         "type": "system",
         "compatibility": {
-          "minimum": "3.0.0",
+          "minimum": "3.1.0",
           "maximum": "3.1.9"
         }
       }
@@ -68,12 +68,12 @@
       }
     ]
   },
-  "bugs": "https://github.com/krbz999/foundryvtt-items-with-spells-5e/issues",
-  "changelog": "https://github.com/krbz999/foundryvtt-items-with-spells-5e/releases",
+  "bugs": "https://github.com/morepurplemorebetter/fvtt-items-with-spells-5e/issues",
+  "changelog": "https://github.com/morepurplemorebetter/fvtt-items-with-spells-5e/releases",
   "download": "AUTOMATIC",
-  "manifest": "https://github.com/krbz999/foundryvtt-items-with-spells-5e/releases/latest/download/module.json",
-  "readme": "https://raw.githubusercontent.com/krbz999/foundryvtt-items-with-spells-5e/main/README.md",
-  "url": "https://github.com/morepurplemorebetter/foundryvtt-items-with-spells-5e",
+  "manifest": "https://github.com/morepurplemorebetter/fvtt-items-with-spells-5e/releases/latest/download/module.json",
+  "readme": "https://raw.githubusercontent.com/morepurplemorebetter/fvtt-items-with-spells-5e/main/README.md",
+  "url": "https://github.com/morepurplemorebetter/fvtt-items-with-spells-5e",
   "flags": {
     "fvttdevleague": {
       "package-jam": 2022
