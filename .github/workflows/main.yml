@@ -9,22 +9,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4.1.6 # Used to be v2 - needs to be tested
 
       # Get part of the tag after the `v`.
       - name: Extract tag version number
         id: get_version
-        uses: battila7/get-version-action@v2
+        uses: battila7/get-version-action@v2.2.1
 
+# deprecated, using cschleiden/replace-tokens now
       # Remove HotReload and update version and download properties.
-      - name: Modify Manifest to remove HotReload
-        uses: microsoft/variable-substitution@v1
+      # - name: Modify Manifest to remove HotReload
+      #   uses: microsoft/variable-substitution@v1
+      #   with:
+      #     files: "module.json"
+      #   env:
+      #     flags.hotReload: false
+      #     version: ${{steps.get_version.outputs.version-without-v}}
+      #     download: https://github.com/${{github.repository}}/releases/download/${{github.event.release.tag_name}}/module.zip
+
+      # Modify "module.json" with values specific to the release.
+      # Since the values for the "version" and "url" keys aren't known ahead of
+      # time, the manifest file in the repository is updated with these values.
+      #
+      # While this does modify the manifest file in-place, the changes are not
+      # committed to the repository, and only exist in the action's filesystem.
+      - name: Modify Module Manifest With Release-Specific Values
+        id: sub_manifest_link_version
+        uses: cschleiden/replace-tokens@v1.3
         with:
-          files: "module.json"
+          files: 'module.json'
         env:
-          flags.hotReload: false
-          version: ${{steps.get_version.outputs.version-without-v}}
-          download: https://github.com/${{github.repository}}/releases/download/${{github.event.release.tag_name}}/module.zip
+          VERSION: ${{steps.get_version.outputs.version-without-v}}
+          DOWNLOAD: https://github.com/${{github.repository}}/releases/download/${{github.event.release.tag_name}}/module.zip
 
       # Create zip file.
       - name: Create ZIP archive
@@ -32,14 +48,13 @@ jobs:
 
       # Create a release for this specific version.
       - name: Update Release with Files
-        if: "!github.event.release.prerelease"
         id: create_version_release
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
           name: ${{ github.event.release.name }}
-          draft: false
-          prerelease: false
+          draft: ${{ github.event.release.unpublished }}
+          prerelease: ${{ github.event.release.prerelease }}
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: "./module.json, ./module.zip"
           tag: ${{ github.event.release.tag_name }}

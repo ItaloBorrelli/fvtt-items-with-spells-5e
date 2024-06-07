@@ -2,7 +2,7 @@
   "id": "items-with-spells-5e",
   "title": "Items with Spells DnD5e",
   "description": "A module that allows spells to be attached to Items, Features, etc.",
-  "version": "AUTOMATIC",
+  "version": "#{VERSION}#",
   "authors": [
     {
       "name": "Andrew Krigline",
@@ -70,7 +70,7 @@
   },
   "bugs": "https://github.com/morepurplemorebetter/fvtt-items-with-spells-5e/issues",
   "changelog": "https://github.com/morepurplemorebetter/fvtt-items-with-spells-5e/releases",
-  "download": "AUTOMATIC",
+  "download": "#{DOWNLOAD}#",
   "manifest": "https://github.com/morepurplemorebetter/fvtt-items-with-spells-5e/releases/latest/download/module.json",
   "readme": "https://raw.githubusercontent.com/morepurplemorebetter/fvtt-items-with-spells-5e/main/README.md",
   "url": "https://github.com/morepurplemorebetter/fvtt-items-with-spells-5e",
