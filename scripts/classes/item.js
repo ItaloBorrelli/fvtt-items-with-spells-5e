@@ -90,14 +90,8 @@ export class ItemsWithSpells5eItem {
       return original;
     }
 
-    // these changes are always applied
-    const fixedChanges = {
-      ['flags.core.sourceId']: uuid, // set the sourceId as the original spell
-      [`flags.${ItemsWithSpells5e.MODULE_ID}.${ItemsWithSpells5e.FLAGS.parentItem}`]: this.item.uuid,
-      ['system.preparation.mode']: 'atwill',
-    };
-
-    const update = foundry.utils.mergeObject(changes, fixedChanges);
+    // merge with the changes that always need to be applied
+    const update = foundry.utils.mergeObject(changes, this._getFlagFixObject(uuid));
 
     // backfill the 'charges' and 'target' for parent-item-charge consumption style spells
     if (foundry.utils.getProperty(changes, 'system.consume.amount')) {
@@ -155,6 +149,23 @@ export class ItemsWithSpells5eItem {
   }
 
   /**
+   * Returns an object to merge into the spells object to apply/fix flags
+   * @param {string} providedUuid
+   * @returns {object}
+   */
+  _getFlagFixObject(providedUuid) {
+    const changes = {
+      'flags.core.sourceId': providedUuid, // set the sourceId as the original spell
+      [`flags.${ItemsWithSpells5e.MODULE_ID}.${ItemsWithSpells5e.FLAGS.parentItem}`]: this.item.uuid,
+      'system.preparation.mode': 'atwill'
+    };
+    if (game.modules.get('tidy5e-sheet')) {
+      changes[`flags.${game.modules.get('tidy5e-sheet').id}.section`] = null;
+    }
+    return changes;
+  }
+
+  /**
    * Adds a given UUID to the item's spell list
    * @param {string} providedUuid
    */
@@ -174,12 +185,7 @@ export class ItemsWithSpells5eItem {
         ui.notifications.error('Item data for', uuid, 'not found');
         return;
       }
-
-      const adjustedItemData = foundry.utils.mergeObject(fullItemData.toObject(), {
-        "flags.core.sourceId": uuid, // set the sourceId as the original spell
-        [`flags.${ItemsWithSpells5e.MODULE_ID}.${ItemsWithSpells5e.FLAGS.parentItem}`]: this.item.uuid,
-        "system.preparation.mode": "atwill"
-      });
+      const adjustedItemData = foundry.utils.mergeObject(fullItemData.toObject(), this._getFlagFixObject(providedUuid));
 
       const [newItem] = await this.item.actor.createEmbeddedDocuments('Item', [adjustedItemData]);
       uuid = newItem.uuid;
@@ -216,7 +222,7 @@ export class ItemsWithSpells5eItem {
     this._itemSpellItems?.delete(itemId);
     this._itemSpellFlagMap?.delete(itemId);
 
-    await this.item.setFlag(ItemsWithSpells5e.MODULE_ID, "item-spells", newItemSpells);
+    await this.item.setFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.itemSpells, newItemSpells);
 
     // Nothing more to do for unowned items.
     if (!this.item.isOwned) return;
@@ -233,7 +239,7 @@ export class ItemsWithSpells5eItem {
     }));
 
     if (shouldDeleteSpell) return spellItem.delete();
-    else return spellItem.unsetFlag(ItemsWithSpells5e.MODULE_ID, "parent-item");
+    else return spellItem.unsetFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.parentItem);
   }
 
   /**
@@ -248,7 +254,7 @@ export class ItemsWithSpells5eItem {
     const newItemSpellsFlagValue = [...this.itemSpellFlagMap.values()];
 
     // this update should not re-render the item sheet because we need to wait until we refresh to do so
-    await this.item.update({[`flags.${ItemsWithSpells5e.MODULE_ID}.item-spells`]: newItemSpellsFlagValue}, {render: false});
+    await this.item.update({[`flags.${ItemsWithSpells5e.MODULE_ID}.${ItemsWithSpells5e.FLAGS.itemSpells}`]: newItemSpellsFlagValue}, {render: false});
 
     // update this data manager's understanding of the items it contains
     await this.refresh();

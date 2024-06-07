@@ -1,7 +1,9 @@
 This module has been created by [Calego](https://github.com/ElfFriend-DnD/foundryvtt-items-with-spells-5e) and previously been maintained by [Zhell](https://github.com/krbz999/foundryvtt-items-with-spells-5e). I (MPMB) will try to fill their big shoes and keep this module working for my games and yours.
 
-# Items with Spells
+# Items with Spells D&D 5e
 This module aims to allow users to attach spells to items in such a way that when the parent item is added to an actor, the spells attached come with, pre-configured with consumption overrides and other small QOL changes.
+
+This module only works with D&D 5e.
 
 It also adds a new display of spell-attached items to the Spellbook.
 
@@ -19,17 +21,19 @@ This module is intended to be compatible with the following, but integration is 
 &nbsp;
 
 # Features
-This module does not replace or augment any core item workflow logic, only allows a way to signify that some Items also add spells to actors when added to an actor.
+This module does not replace or augment any core item workflow logic, only allows a way to signify that some items also add spells to actors when added to an actor.
 
-The scope of this module is intentionally limited and will not fully replace the edge-cases that [Magic Items] attempts to accommodate.
+The scope of this module is intentionally limited and will not fully replace the edge-cases that [Magic Items](https://github.com/PwQt/magic-items-2) attempts to accommodate.
+
+Where Magic Items adds a link to the spell, this module does a regular import of a spell to the actor sheet. As a result, there are less things that can break in the system and/or other modules. See which works best for you.
 
 ### Recommended use cases
-- Magic Items which have Spells attached to them.
+- Magic items which have spells attached to them.
 - Features which specifically add spells that have their own limited uses, not meant to be used with spell slots.
 
 ### Not recommended for
-- Class Spell Lists
-- Subclass Specific Spells (e.g. "Always Prepared" spells)
+- Class spell lists
+- Subclass specific spells (e.g. "always prepared" spells)
 
 &nbsp;
 
@@ -37,7 +41,7 @@ The scope of this module is intentionally limited and will not fully replace the
 ![Drag and Drop the "Web" spell from the SRD Compendium to add it to a "Wand of Web" item.](https://user-images.githubusercontent.com/7644614/190871191-9255a1af-c784-41a3-a9f2-722fc90cef26.png)
 > <sup>Drag and Drop the "Web" spell from the SRD Compendium to add it to a "Wand of Web" item.</sup>
 
-A "Spells" tab is added to each item sheet, except for spells or "loot" items.
+A "Spells" tab is added to each item sheet, except for spells.
 
 This tab allows spells to be dragged and dropped into it from either the items tab on the sidebar or any loaded compendium.
 **Do not drop spells from an actor (i.e. from a character sheet)!**

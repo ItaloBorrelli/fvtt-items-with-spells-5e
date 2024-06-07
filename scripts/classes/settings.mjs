@@ -8,8 +8,9 @@ export const EXCLUDED_TYPES = [
   "race",
   "lineage",
   "spell",
-  "loot",
-  "base"
+  "base",
+  "container",
+  "backpack"
 ];
 
 export function _registerSettings() {

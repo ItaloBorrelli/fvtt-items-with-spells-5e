@@ -22,11 +22,11 @@ export class ItemsWithSpells5eActor {
     if (!(itemDeleted.parent instanceof Actor)) return;
     if (["group", "vehicle"].includes(itemDeleted.parent.type)) return;
 
-    const ids = itemDeleted.getFlag(ItemsWithSpells5e.MODULE_ID, "item-spells") ?? [];
+    const ids = itemDeleted.getFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.itemSpells) ?? [];
     if (!ids.length) return;
 
     const spellIds = itemDeleted.actor.items.reduce((acc, item) => {
-      const flag = item.getFlag(ItemsWithSpells5e.MODULE_ID, "parent-item") ?? {};
+      const flag = item.getFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.parentItem) ?? {};
       if ([itemDeleted.id, itemDeleted.uuid].includes(flag)) acc.push(item.id);// check uuid, too, for backwards compat.
       return acc;
     }, []);
@@ -61,7 +61,7 @@ export class ItemsWithSpells5eActor {
     if (!include) return;
 
     // Get array of objects with uuids of spells to create.
-    const spellUuids = itemCreated.getFlag(ItemsWithSpells5e.MODULE_ID, "item-spells") ?? [];
+    const spellUuids = itemCreated.getFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.itemSpells) ?? [];
     if (!spellUuids.length) return;
 
     // Create the spells from this item.
@@ -70,7 +70,7 @@ export class ItemsWithSpells5eActor {
     const spellsCreated = await itemCreated.actor.createEmbeddedDocuments("Item", spellData);
 
     const ids = spellsCreated.map(s => ({uuid: s.uuid, id: s.id}));
-    return itemCreated.setFlag(ItemsWithSpells5e.MODULE_ID, "item-spells", ids);
+    return itemCreated.setFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.itemSpells, ids);
   }
 
   /**
@@ -103,9 +103,13 @@ export class ItemsWithSpells5eActor {
 
     // Create and return spell data.
     const spellData = game.items.fromCompendium(spell);
-    return foundry.utils.mergeObject(spellData, {
-      "flags.items-with-spells-5e.parent-item": parentItem.id,
+    const mergeData = {
+      [`flags.${ItemsWithSpells5e.MODULE_ID}.${ItemsWithSpells5e.FLAGS.parentItem}`]: parentItem.id,
       system: {...changes, "preparation.mode": "atwill"}
-    });
+    };
+    if (game.modules.get('tidy5e-sheet')) {
+      mergeData[`flags.${game.modules.get('tidy5e-sheet').id}.section`] = null;
+    }
+    return foundry.utils.mergeObject(spellData, mergeData);
   }
 }

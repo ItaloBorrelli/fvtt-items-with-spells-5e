@@ -20,7 +20,7 @@ export class ItemsWithSpells5eActorSheet {
    */
   static prepareItemSpellbook(wrapped, data, spells) {
     const nonItemSpells = spells.filter(spell => {
-      const parentId = spell.getFlag(ItemsWithSpells5e.MODULE_ID, "parent-item");
+      const parentId = spell.getFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.parentItem);
       return !parentId || !this.actor.items.some(item => [item.id, item.uuid].includes(parentId));
     });
     const spellbook = wrapped(data, nonItemSpells);
@@ -42,9 +42,9 @@ export class ItemsWithSpells5eActorSheet {
       };
     };
 
-    const spellItems = spells.filter(spell => !!spell.getFlag(ItemsWithSpells5e.MODULE_ID, "parent-item"));
+    const spellItems = spells.filter(spell => !!spell.getFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.parentItem));
     const itemsWithSpells = this.actor.items.filter(item => {
-      const fl = item.getFlag(ItemsWithSpells5e.MODULE_ID, "item-spells")?.length;
+      const fl = item.getFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.itemSpells)?.length;
       if (!fl) return false;
       let include = false;
       try {
@@ -59,7 +59,7 @@ export class ItemsWithSpells5eActorSheet {
       if (!iws.system.identified || (excludeUnequipped && !iws.system.equipped) || iws.system.attunement === CONFIG.DND5E.attunementTypes.REQUIRED) return;
       const section = createSection(iws, iws.system.uses);
       section.spells = spellItems.filter(spell => {
-        const parentId = spell.getFlag(ItemsWithSpells5e.MODULE_ID, "parent-item");
+        const parentId = spell.getFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.parentItem);
         return [iws.id, iws.uuid].includes(parentId);
       });
 

@@ -39,7 +39,7 @@ export class ItemsWithSpells5eItemSheet {
 
       const instance = ItemsWithSpells5eItemSheet.instances.get(app.appId);
       if (instance) {
-        instance.renderLite(app, instance);
+        instance.renderLite();
         if (instance._shouldOpenSpellsTab) {
           app._tabs?.[0]?.activate?.('spells');
           instance._shouldOpenSpellsTab = false;
@@ -48,7 +48,7 @@ export class ItemsWithSpells5eItemSheet {
       }
       const newInstance = new ItemsWithSpells5eItemSheet(app, html);
       ItemsWithSpells5eItemSheet.instances.set(app.appId, newInstance);
-      return newInstance.renderLite(app, newInstance);
+      return newInstance.renderLite();
     });
 
     // clean up instances as sheets are closed
@@ -81,7 +81,7 @@ export class ItemsWithSpells5eItemSheet {
           };
         }
       });
-      api.registerItemTab(myTab, { autoHeight : true });
+      api.registerItemTab(myTab, { autoHeight: true });
     });
   }
 
@@ -102,7 +102,7 @@ export class ItemsWithSpells5eItemSheet {
       },
       isOwner: this.item.isOwner,
       isOwned: this.item.isOwned,
-      concealDetails : !game.user.isGM && (this.item.system.identified === false)
+      concealDetails: !game.user.isGM && (this.item.system.identified === false)
     });
   }
 
@@ -165,7 +165,7 @@ export class ItemsWithSpells5eItemSheet {
    * Synchronous part of the render which calls the asynchronous `renderHeavy`
    * This allows for less delay during the update -> renderItemSheet -> set tab cycle
    */
-  renderLite(app) {
+  renderLite() {
     // Update the nav menu
     const div = document.createElement("DIV");
     div.innerHTML = `<a class="item" data-tab="spells">${game.i18n.localize("TYPES.Item.spellPl")}</a>`;

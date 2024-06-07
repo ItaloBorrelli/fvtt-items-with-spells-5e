@@ -4,7 +4,7 @@
   "IWS.ConfigureOverrides": "Configure Overrides",
   "IWS.DeleteSpell": "Delete Spell",
   "IWS.LIMITED_HINT": "If this spell has a number of uses per rest or similar innate limitations, configure the number of charges above.",
-  "IWS.MISSING_ITEM_DESCRIPTION": "This Spell's original item could not be found. Maybe it was deleted?",
+  "IWS.MISSING_ITEM_DESCRIPTION": "This spell's original item could not be found. Maybe it was deleted?",
   "IWS.MISSING_ITEM": "Missing Item",
   "IWS.MODULE_NAME": "Items with Spells",
   "IWS.QUERY_ALSO_DELETE": "Would you also like to delete the spells from that item?",
@@ -18,7 +18,7 @@
   "IWS.SETTINGS.EXCLUDE_UNEQUIPPED.HINT": "If checked, spells won't be shown for items that are not equipped. If unchecked, spells will be shown regardless of equipped status.",
   "IWS.SETTINGS.EXCLUDE_UNEQUIPPED.NAME": "Hide spells from unequipped items",
   "IWS.ATTACK_HINT": "If this spell has a flat attack bonus, write it here.",
-  "IWS.WARN_ALSO_DELETE": "This will also delete the Spell from the Actor. Are you certain you want to delete the embedded spell?",
-  "IWS.WARN_CANNOT_ADDREMOVE": "An Owned Item's spells cannot be added to or removed from. These spells have been added to the Actor's Spellbook Tab.",
-  "IWS.WARN_OWNED": "You are editing an owned Item's spells, any changes made here will not be applied to the spells on the owning actor."
+  "IWS.WARN_ALSO_DELETE": "This will also delete the spell from the actor. Are you certain you want to delete the embedded spell?",
+  "IWS.WARN_CANNOT_ADDREMOVE": "An owned item's spells cannot be added to or removed from. These spells have been added to the actor's spellbook Tab.",
+  "IWS.WARN_OWNED": "You are editing an owned item's spells, any changes made here will not be applied to the spells on the owning actor."
 }

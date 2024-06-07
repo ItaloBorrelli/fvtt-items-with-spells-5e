@@ -17,6 +17,7 @@ export class ItemsWithSpells5e {
   };
 
   static init() {
+    dnd5e.utils.registerHandlebarsHelpers();
     ItemsWithSpells5e.preloadTemplates();
   }
 
