@@ -69,7 +69,7 @@ jobs:
 
       # Update the FoundryVTT website, source: https://github.com/marketplace/actions/publish-foundryvtt-package
       - name: Publish Module to FoundryVTT Website
-        if: !github.event.release.prerelease
+        if: ${{ !github.event.release.prerelease }}
         id: publish-to-foundry-website
         uses: cs96and/FoundryVTT-release-package@v1.0.2
         with:
