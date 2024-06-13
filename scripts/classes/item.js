@@ -296,7 +296,7 @@ export class ItemsWithSpells5eItem {
       const spells = new Map();
       const itemIds = [item.id ?? item._id, item.uuid];
       items.forEach(spell => {
-        const parentId = ItemsWithSpells5e.getSpellParentId(spell);
+        const parentId = IWS.getSpellParentId(spell);
         if (itemIds.includes(parentId)) spells.set(spell.id, spell);
       });
       return spells;

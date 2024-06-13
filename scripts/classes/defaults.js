@@ -98,17 +98,19 @@ export class ItemsWithSpells5e {
   static isUsableItem(item) {
     // Unusable if item is not identified
     if (item.system?.identified === false) return false;
-    // Unusable if item is not attuned
-    if (foundry.utils.isNewerVersion(game.system.version, "3.1.99")) {
-      const attunementRequired = item.system.attunement === "required";
-      if (!item.system.attuned && attunementRequired) return false;
-    } else {
-      const attunementRequired = CONFIG.DND5E.attunementTypes?.REQUIRED ?? 1;
-      if (item.system?.attunement === attunementRequired) return false;
-    }
     // Unusable if item is not equipped and setting set to exclude based unequipped
     const iwsExcludeUnequipped = game.settings.get(ItemsWithSpells5e.MODULE_ID, "excludeUnequipped");
     if (iwsExcludeUnequipped && item.system.equipped === false) return false;
+    // Unusable if item is not attuned (but still show to GM)
+    if (!game.user.isGM) {
+      if (foundry.utils.isNewerVersion(game.system.version, "3.1.99")) {
+        const attunementRequired = item.system.attunement === "required";
+        if (!item.system.attuned && attunementRequired) return false;
+      } else {
+        const attunementRequired = CONFIG.DND5E.attunementTypes?.REQUIRED ?? 1;
+        if (item.system?.attunement === attunementRequired) return false;
+      }
+    }
     return true;
   }
 }
