@@ -21,3 +21,27 @@
 .item-with-spells-item-controls {
   border-left: 1px solid #c9c7b8;
 }
+
+/* fix Unidentified box display on Tidy 5e Sheets */
+.tidy5e-sheet .items-with-spells-tab {
+	position: relative;
+}
+.tidy5e-sheet .items-with-spells-tab .unidentified-notice {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-content: start center;
+}
+.tidy5e-sheet .items-with-spells-tab .unidentified-notice > div {
+	margin-block-start: 4rem;
+	margin-inline: auto;
+	padding: 2rem;
+	border: .0625rem solid var(--t5e-separator-color);
+	border-radius: .25rem;
+	box-shadow: 0 0 .75rem #00000073;
+	background: var(--t5e-background);
+	text-align: center;
+}
+.tidy5e-sheet .items-with-spells-tab .unidentified-notice > div strong {
+	font-size: 1.5rem;
+}

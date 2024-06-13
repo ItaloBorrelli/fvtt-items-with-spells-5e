@@ -1,10 +1,10 @@
-import {ItemsWithSpells5e} from '../items-with-spells-5e.js';
+import {ItemsWithSpells5e as IWS} from './defaults.js';
 
 /* A class made to make managing the operations for an Actor. */
 export class ItemsWithSpells5eActorSheet {
   /* Set up the Actor Sheet Patch */
   static init() {
-    const id = ItemsWithSpells5e.MODULE_ID;
+    const id = IWS.MODULE_ID;
     const fn = ItemsWithSpells5eActorSheet.prepareItemSpellbook;
     ["Character", "NPC"].forEach(a => {
       libWrapper.register(id, `dnd5e.applications.actor.ActorSheet5e${a}.prototype._prepareSpellbook`, fn, "WRAPPER");
@@ -19,21 +19,15 @@ export class ItemsWithSpells5eActorSheet {
    * @returns {object}              The spellbook data.
    */
   static prepareItemSpellbook(wrapped, data, spells) {
-    const nonItemSpells = spells.filter(spell => {
-      const parentId = spell.getFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.parentItem);
-      return !parentId || !this.actor.items.some(item => [item.id, item.uuid].includes(parentId));
-    });
-    const spellbook = wrapped(data, nonItemSpells);
-    const order = game.settings.get(ItemsWithSpells5e.MODULE_ID, "sortOrder") ? 20 : -5;
-    const excludeUnequipped = game.settings.get(ItemsWithSpells5e.MODULE_ID, "excludeUnequipped");
-    const createSection = (iws, uses = {}) => {
+    const order = game.settings.get(IWS.MODULE_ID, "sortOrder") ? 20 : -5;
+    const createSection = (iws, uses = {}, spells = []) => {
       return {
         order: order,
         label: iws.name,
         usesSlots: false,
         canCreate: false,
         canPrepare: false,
-        spells: [],
+        spells,
         uses: uses.value ?? "-",
         slots: uses.max ?? "-",
         override: 0,
@@ -42,29 +36,40 @@ export class ItemsWithSpells5eActorSheet {
       };
     };
 
-    const spellItems = spells.filter(spell => !!spell.getFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.parentItem));
+    // iterate through spells and put them in respective maps
+    const nonItemSpells = [];
+    const spellsPerItem = new Map();
+    spells.forEach((spell) => {
+      const parentId = IWS.getSpellParentId(spell);
+      if ( parentId && this.actor.items.some(item => [item.id, item.uuid].includes(parentId)) ) {
+        const parentIdLast = parentId.split('.').pop();
+        if (!spellsPerItem.get(parentIdLast)) spellsPerItem.set(parentIdLast, []);
+        spellsPerItem.get(parentIdLast).push(spell);
+      } else {
+        nonItemSpells.push(spell);
+      }
+    });
+
+    const spellbook = wrapped(data, nonItemSpells);
+
+    // get all the items with spells on this actor
     const itemsWithSpells = this.actor.items.filter(item => {
-      const fl = item.getFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.itemSpells)?.length;
+      const fl = item.getFlag(IWS.MODULE_ID, IWS.FLAGS.itemSpells)?.length;
       if (!fl) return false;
-      let include = false;
-      try {
-        include = !!game.settings.get(ItemsWithSpells5e.MODULE_ID, `includeItemType${item.type.titleCase()}`);
-      } catch {}
+      const include = IWS.isIncludedItemType(item.type);
       return include;
     });
 
     // create a new spellbook section for each item with spells attached
     itemsWithSpells.forEach((iws) => {
-      // Filter out items that are not equipped, not attuned (but require it), or not identified
-      if (!iws.system.identified || (excludeUnequipped && !iws.system.equipped) || iws.system.attunement === CONFIG.DND5E.attunementTypes.REQUIRED) return;
-      const section = createSection(iws, iws.system.uses);
-      section.spells = spellItems.filter(spell => {
-        const parentId = spell.getFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.parentItem);
-        return [iws.id, iws.uuid].includes(parentId);
-      });
-
+      const iwsSpells = spellsPerItem.get(iws.id);
+      if (!iwsSpells) return;
+      const iwsUsable = IWS.isUsableItem(iws);
+      if (!iwsUsable) return;
+      const section = createSection(iws, iws.system.uses, iwsSpells);
       spellbook.push(section);
     });
+
     spellbook.sort((a, b) => (a.order - b.order) || (a.label - b.label));
     return spellbook;
   }

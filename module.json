@@ -5,11 +5,10 @@
   "version": "#{VERSION}#",
   "authors": [
     {
-      "name": "Andrew Krigline",
-      "discord": "Calego#0914",
-      "url": "https://github.com/ElfFriend-DnD",
-      "patreon": "https://www.patreon.com/ElfFriend_DnD",
-      "ko-fi": "https://ko-fi.com/elffriend"
+      "name": "MorePurpleMoreBetter",
+      "discord": "morepurplemorebetter",
+      "url": "https://github.com/morepurplemorebetter",
+      "patreon": "https://www.patreon.com/morepurplemorebetter"
     },
     {
       "name": "Zhell",
@@ -19,22 +18,23 @@
       "ko-fi": "https://ko-fi.com/zhell"
     },
     {
-        "name": "MorePurpleMoreBetter",
-        "discord": "morepurplemorebetter",
-        "url": "https://github.com/morepurplemorebetter",
-        "patreon": "https://www.patreon.com/morepurplemorebetter"
+      "name": "Andrew Krigline",
+      "discord": "Calego#0914",
+      "url": "https://github.com/ElfFriend-DnD",
+      "patreon": "https://www.patreon.com/ElfFriend_DnD",
+      "ko-fi": "https://ko-fi.com/elffriend"
     }
   ],
   "esmodules": [
-    "scripts/items-with-spells-5e.js"
+    "scripts/items-with-spells-5e.min.js"
   ],
   "styles": [
     "styles/items-with-spells-5e.css"
   ],
   "compatibility": {
     "minimum": 11,
-    "maximum": 11,
-    "verified": 11
+    "maximum": 12,
+    "verified": "12.327"
   },
   "languages": [
     {
@@ -55,7 +55,8 @@
         "type": "system",
         "compatibility": {
           "minimum": "3.1.0",
-          "maximum": "3.1.9"
+          "maximum": "3.2.9",
+          "verified": "3.2.1"
         }
       }
     ],

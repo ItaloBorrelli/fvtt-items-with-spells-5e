@@ -1,4 +1,4 @@
-import {ItemsWithSpells5e} from '../items-with-spells-5e.js';
+import {ItemsWithSpells5e as IWS} from './defaults.js';
 import {ItemsWithSpells5eItemSheet} from './item-sheet.js';
 
 /**
@@ -15,11 +15,14 @@ const FakeEmptySpell = (uuid, parent) =>
       system: {
         description: {
           value: game.i18n.localize("IWS.MISSING_ITEM_DESCRIPTION"),
-        },
+        }
       },
-      _id: uuid.split('.').pop(),
+      _id: uuid.split('.').pop()
     },
-    {temporary: true, parent},
+    {
+      temporary: true,
+      parent
+    }
   );
 
 /**
@@ -49,7 +52,7 @@ export class ItemsWithSpells5eItem {
    * Raw flag data
    */
   get itemSpellList() {
-    return this.item.getFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.itemSpells) ?? [];
+    return this.item.getFlag(IWS.MODULE_ID, IWS.FLAGS.itemSpells) ?? [];
   }
 
   /**
@@ -86,18 +89,18 @@ export class ItemsWithSpells5eItem {
     }
 
     // this exists if the 'child' spell has been created on an actor
-    if (original.getFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.parentItem) === this.item.uuid) {
+    if (original.getFlag(IWS.MODULE_ID, IWS.FLAGS.parentItem) === this.item.uuid) {
       return original;
     }
 
     // merge with the changes that always need to be applied
-    const update = foundry.utils.mergeObject(changes, this._getFlagFixObject(uuid));
+    const update = foundry.utils.mergeObject(changes, this._getFlagFixObject(original, uuid));
 
     // backfill the 'charges' and 'target' for parent-item-charge consumption style spells
     if (foundry.utils.getProperty(changes, 'system.consume.amount')) {
       foundry.utils.mergeObject(update, {
         'system.consume.type': 'charges',
-        'system.consume.target': this.item.id,
+        'system.consume.target': this.item.id
       });
     }
 
@@ -105,6 +108,7 @@ export class ItemsWithSpells5eItem {
       temporary: true,
       keepId: false,
       parent: this.item.parent,
+      
     });
     await childItem.updateSource(update);
 
@@ -126,7 +130,7 @@ export class ItemsWithSpells5eItem {
 
         itemMap.set(childItem.id, childItem);
         return childItem;
-      }),
+      })
     );
 
     this._itemSpellItems = itemMap;
@@ -153,14 +157,17 @@ export class ItemsWithSpells5eItem {
    * @param {string} providedUuid
    * @returns {object}
    */
-  _getFlagFixObject(providedUuid) {
+  _getFlagFixObject(item, providedUuid) {
+    // Foundry v12 uses '_stats.compendiumSource' instead of 'flags.core.sourceId'
+    const sourceIdFlag = foundry.utils.isNewerVersion(game.version, "11.999") ? '_stats.compendiumSource' : 'flags.core.sourceId';
     const changes = {
-      'flags.core.sourceId': providedUuid, // set the sourceId as the original spell
-      [`flags.${ItemsWithSpells5e.MODULE_ID}.${ItemsWithSpells5e.FLAGS.parentItem}`]: this.item.uuid,
+      [sourceIdFlag]: providedUuid, // set the sourceId as the original spell
+      [`flags.${IWS.MODULE_ID}.${IWS.FLAGS.parentItem}`]: this.item.uuid,
       'system.preparation.mode': 'atwill'
     };
-    if (game.modules.get('tidy5e-sheet')) {
-      changes[`flags.${game.modules.get('tidy5e-sheet').id}.section`] = null;
+    const tidy5eSectionFlag = item.flags['tidy5e-sheet']?.section;
+    if (tidy5eSectionFlag) {
+      changes['flags.tidy5e-sheet.section'] = null;
     }
     return changes;
   }
@@ -173,7 +180,7 @@ export class ItemsWithSpells5eItem {
     // MUTATED if this is an owned item
     let uuid = providedUuid;
 
-    if (this.item.isOwned) {
+    if (this.item.isEmbedded) {
       // if this item is already on an actor, we need to
       // 0. see if the uuid is already on the actor
       // 1. create the dropped uuid on the Actor's item list (OR update that item to be a child of this one)
@@ -185,7 +192,8 @@ export class ItemsWithSpells5eItem {
         ui.notifications.error('Item data for', uuid, 'not found');
         return;
       }
-      const adjustedItemData = foundry.utils.mergeObject(fullItemData.toObject(), this._getFlagFixObject(providedUuid));
+      const changes = this._getFlagFixObject(fullItemData, providedUuid);
+      const adjustedItemData = foundry.utils.mergeObject(fullItemData.toObject(), changes);
 
       const [newItem] = await this.item.actor.createEmbeddedDocuments('Item', [adjustedItemData]);
       uuid = newItem.uuid;
@@ -194,7 +202,7 @@ export class ItemsWithSpells5eItem {
     const itemSpells = [...this.itemSpellList, {uuid}];
 
     // this update should not re-render the item sheet because we need to wait until we refresh to do so
-    const property = `flags.${ItemsWithSpells5e.MODULE_ID}.${ItemsWithSpells5e.FLAGS.itemSpells}`;
+    const property = `flags.${IWS.MODULE_ID}.${IWS.FLAGS.itemSpells}`;
     await this.item.update({[property]: itemSpells}, {render: false});
 
     await this.refresh();
@@ -215,17 +223,17 @@ export class ItemsWithSpells5eItem {
     const itemToDelete = this.itemSpellItemMap.get(itemId);
 
     // If owned, we are storing the actual owned spell item's uuid. Else we store the source id.
-    const uuidToRemove = this.item.isOwned ? itemToDelete.uuid : itemToDelete.getFlag("core", "sourceId");
+    const uuidToRemove = this.item.isEmbedded ? itemToDelete.uuid : await itemToDelete.getFlag("core", "sourceId");
     const newItemSpells = this.itemSpellList.filter(({uuid}) => uuid !== uuidToRemove);
 
     // update the data manager's internal store of the items it contains
     this._itemSpellItems?.delete(itemId);
     this._itemSpellFlagMap?.delete(itemId);
 
-    await this.item.setFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.itemSpells, newItemSpells);
+    await this.item.setFlag(IWS.MODULE_ID, IWS.FLAGS.itemSpells, newItemSpells);
 
     // Nothing more to do for unowned items.
-    if (!this.item.isOwned) return;
+    if (!this.item.isEmbedded) return;
 
     // remove the spell's `parentItem` flag
     const spellItem = fromUuidSync(uuidToRemove);
@@ -239,7 +247,7 @@ export class ItemsWithSpells5eItem {
     }));
 
     if (shouldDeleteSpell) return spellItem.delete();
-    else return spellItem.unsetFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.parentItem);
+    else return spellItem.unsetFlag(IWS.MODULE_ID, IWS.FLAGS.parentItem);
   }
 
   /**
@@ -254,7 +262,7 @@ export class ItemsWithSpells5eItem {
     const newItemSpellsFlagValue = [...this.itemSpellFlagMap.values()];
 
     // this update should not re-render the item sheet because we need to wait until we refresh to do so
-    await this.item.update({[`flags.${ItemsWithSpells5e.MODULE_ID}.${ItemsWithSpells5e.FLAGS.itemSpells}`]: newItemSpellsFlagValue}, {render: false});
+    await this.item.update({[`flags.${IWS.MODULE_ID}.${IWS.FLAGS.itemSpells}`]: newItemSpellsFlagValue}, {render: false});
 
     // update this data manager's understanding of the items it contains
     await this.refresh();
@@ -265,5 +273,35 @@ export class ItemsWithSpells5eItem {
 
     // now re-render the item sheets
     this.item.render();
+  }
+
+  /**
+   * For API - Get the spells of an item
+   * @public
+   * @param {Item5e[]} item The item to get the attached spells from
+   * @param {boolean} embeddedOnly Only return the items owned by the same actor
+   * @param {Map} providedItems Only return spells included in these items (e.g. pass actor.items)
+   * @returns Map of the items or `null` if item has no spells attached.
+   * Also `null` if embeddedOnly is true and item is not owned by an actor
+   */
+  static async getItemSpells(item, embeddedOnly = false, providedItems = false) {
+    if (typeof item === "string") item = await fromUuid(item);
+    if (embeddedOnly && !item.isEmbedded) return null;
+    const ItemsWithSpellsItem = new ItemsWithSpells5eItem(item);
+    if (!ItemsWithSpellsItem.itemSpellList.length) return null;
+    const items = providedItems ?? embeddedOnly ? item.actor?.items : false;
+    if (embeddedOnly && !items) {
+      return null;
+    } else if (items) {
+      const spells = new Map();
+      const itemIds = [item.id ?? item._id, item.uuid];
+      items.forEach(spell => {
+        const parentId = ItemsWithSpells5e.getSpellParentId(spell);
+        if (itemIds.includes(parentId)) spells.set(spell.id, spell);
+      });
+      return spells;
+    } else {
+      return await ItemsWithSpellsItem.itemSpellItemMap;
+    }
   }
 }

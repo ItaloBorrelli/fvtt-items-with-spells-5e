@@ -1,6 +1,8 @@
-import {ItemsWithSpells5e} from '../items-with-spells-5e.js';
+import {ItemsWithSpells5e as IWS} from './defaults.js';
 import {ItemsWithSpells5eItemSpellOverrides} from './item-spell-overrides.js';
 import {ItemsWithSpells5eItem} from './item.js';
+
+export {ItemsWithSpells5eItem} // to avoid a circular dependency
 
 /**
  * A class made to make managing the operations for an Item sheet easier.
@@ -23,19 +25,9 @@ export class ItemsWithSpells5eItemSheet {
    * Handles the item sheet render hooks.
    */
   static init() {
-    function includeTab(itemType) {
-      let include = false;
-      try {
-        include = !!game.settings.get(
-          ItemsWithSpells5e.MODULE_ID,
-          `includeItemType${itemType.titleCase()}`
-        );
-      } catch {}
-      return include;
-    }
     Hooks.on('renderItemSheet', (app, html) => {
       // stop if item type is not included or this sheet is tidy5e
-      if ( game.modules.get('tidy5e-sheet')?.api?.isTidy5eItemSheet(app) || !includeTab(app.item.type) ) return; // don't do this for tidy5e
+      if ( game.modules.get('tidy5e-sheet')?.api?.isTidy5eItemSheet(app) || !IWS.isIncludedItemType(app.item.type) ) return; // don't do this for tidy5e
 
       const instance = ItemsWithSpells5eItemSheet.instances.get(app.appId);
       if (instance) {
@@ -65,10 +57,10 @@ export class ItemsWithSpells5eItemSheet {
         tabId: 'items-with-spells-5e',
         html: '',
         enabled(data) {
-          return includeTab(data.item.type);
+          return IWS.isIncludedItemType(data.item.type);
         },
         onRender(params) {
-          if (!includeTab(params.data.item.type)) return;
+          if (!IWS.isIncludedItemType(params.data.item.type)) return;
           let app = params.app;
           let html = [params.element];
           const instance = ItemsWithSpells5eItemSheet.instances.get(app.appId);
@@ -88,20 +80,17 @@ export class ItemsWithSpells5eItemSheet {
   /**
    * Renders the spell tab template to be injected
    */
-  /**
-   * Renders the spell tab template to be injected
-   */
   async _renderSpellsList() {
     const itemSpellsArray = [...(await this.itemWithSpellsItem.itemSpellItemMap).values()];
 
-    return renderTemplate(ItemsWithSpells5e.TEMPLATES.spellsTab, {
+    return renderTemplate(IWS.TEMPLATES.spellsTab, {
       itemSpells: itemSpellsArray,
       config: {
         limitedUsePeriods: CONFIG.DND5E.limitedUsePeriods,
         abilities: CONFIG.DND5E.abilities,
       },
+      isEmbedded: this.item.isEmbedded,
       isOwner: this.item.isOwner,
-      isOwned: this.item.isOwned,
       concealDetails: !game.user.isGM && (this.item.system.identified === false)
     });
   }
@@ -127,7 +116,7 @@ export class ItemsWithSpells5eItemSheet {
   async _handleItemClick(event) {
     const itemId = event.currentTarget.closest("[data-item-id]").dataset.itemId;
     const item = this.itemWithSpellsItem.itemSpellItemMap.get(itemId);
-    item?.sheet.render(true, {editable: !!item.isOwned && !!item.isOwner});
+    item?.sheet.render(true, {editable: !!item.isOwner && !!item.isEmbedded});
   }
 
   /**
@@ -156,7 +145,7 @@ export class ItemsWithSpells5eItemSheet {
   async _handleItemEditClick(event) {
     const itemId = event.currentTarget.closest("[data-item-id]").dataset.itemId;
     const item = this.itemWithSpellsItem.itemSpellItemMap.get(itemId);
-    if (item.isOwned) return item.sheet.render(true);
+    if (item.isEmbedded) return item.sheet.render(true);
     // pop up a formapp to configure this item's overrides
     return new ItemsWithSpells5eItemSpellOverrides(this.itemWithSpellsItem, itemId).render(true);
   }
@@ -202,7 +191,7 @@ export class ItemsWithSpells5eItemSheet {
     const dragDrop = {
       dragSelector: ".item",
       dropSelector: ".items-with-spells-tab",
-      permissions: {drop: () => this.app.isEditable && !this.item.isOwned},
+      permissions: {drop: () => this.app.isEditable && !this.item.isEmbedded},
       callbacks: {drop: this._dragEnd},
     };
     this.app.element[0].querySelector(dragDrop.dropSelector).addEventListener("drop", dragDrop.callbacks.drop.bind(this));

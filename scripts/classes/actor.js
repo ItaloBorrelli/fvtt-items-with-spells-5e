@@ -1,4 +1,4 @@
-import {ItemsWithSpells5e} from '../items-with-spells-5e.js';
+import {ItemsWithSpells5e as IWS} from './defaults.js';
 
 /**
  * A class made to make managing the operations for an Actor.
@@ -22,11 +22,11 @@ export class ItemsWithSpells5eActor {
     if (!(itemDeleted.parent instanceof Actor)) return;
     if (["group", "vehicle"].includes(itemDeleted.parent.type)) return;
 
-    const ids = itemDeleted.getFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.itemSpells) ?? [];
+    const ids = itemDeleted.getFlag(IWS.MODULE_ID, IWS.FLAGS.itemSpells) ?? [];
     if (!ids.length) return;
 
     const spellIds = itemDeleted.actor.items.reduce((acc, item) => {
-      const flag = item.getFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.parentItem) ?? {};
+      const flag = IWS.getSpellParentId(item);
       if ([itemDeleted.id, itemDeleted.uuid].includes(flag)) acc.push(item.id);// check uuid, too, for backwards compat.
       return acc;
     }, []);
@@ -40,8 +40,8 @@ export class ItemsWithSpells5eActor {
   }
 
   /**
-   * When an item is created on an actor, if it has any spells to add, create those, and save a reference
-   * to their uuids and ids in the parent item within `flags.<module>.item-spells`.
+   * When an item is created on an actor, if it has any spells to add, create those, and save
+   * a reference to their uuids and ids in the parent item within `flags.<module>.item-spells`.
    * Each added spell also gets `flags.<module>.parent-item` being the parent item's id.
    * @param {Item5e} itemCreated      The item with spells that was created.
    * @param {object} options          Creation options.
@@ -54,14 +54,11 @@ export class ItemsWithSpells5eActor {
     if (["group", "vehicle"].includes(itemCreated.parent.type)) return;
 
     // bail out from creating the spells if the parent item is not valid.
-    let include = false;
-    try {
-      include = !!game.settings.get(ItemsWithSpells5e.MODULE_ID, `includeItemType${itemCreated.type.titleCase()}`);
-    } catch {}
+    const include = IWS.isIncludedItemType(itemCreated.type);
     if (!include) return;
 
     // Get array of objects with uuids of spells to create.
-    const spellUuids = itemCreated.getFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.itemSpells) ?? [];
+    const spellUuids = itemCreated.getFlag(IWS.MODULE_ID, IWS.FLAGS.itemSpells) ?? [];
     if (!spellUuids.length) return;
 
     // Create the spells from this item.
@@ -70,7 +67,7 @@ export class ItemsWithSpells5eActor {
     const spellsCreated = await itemCreated.actor.createEmbeddedDocuments("Item", spellData);
 
     const ids = spellsCreated.map(s => ({uuid: s.uuid, id: s.id}));
-    return itemCreated.setFlag(ItemsWithSpells5e.MODULE_ID, ItemsWithSpells5e.FLAGS.itemSpells, ids);
+    return itemCreated.setFlag(IWS.MODULE_ID, IWS.FLAGS.itemSpells, ids);
   }
 
   /**
@@ -91,9 +88,11 @@ export class ItemsWithSpells5eActor {
     }
 
     // Adjust limited uses.
-    const rollData = parentItem.getRollData({deterministic: true});
     const usesMax = changes.uses?.max;
-    if (usesMax) changes.uses.value = dnd5e.utils.simplifyBonus(usesMax, rollData);
+    if (usesMax) {
+      const rollData = parentItem.getRollData({deterministic: true});
+      changes.uses.value = dnd5e.utils.simplifyBonus(usesMax, rollData);
+    }
 
     // Adjust item id for consumption.
     if (changes.consume?.amount) {
@@ -104,11 +103,12 @@ export class ItemsWithSpells5eActor {
     // Create and return spell data.
     const spellData = game.items.fromCompendium(spell);
     const mergeData = {
-      [`flags.${ItemsWithSpells5e.MODULE_ID}.${ItemsWithSpells5e.FLAGS.parentItem}`]: parentItem.id,
+      [`flags.${IWS.MODULE_ID}.${IWS.FLAGS.parentItem}`]: parentItem.id,
       system: {...changes, "preparation.mode": "atwill"}
     };
-    if (game.modules.get('tidy5e-sheet')) {
-      mergeData[`flags.${game.modules.get('tidy5e-sheet').id}.section`] = null;
+    const tidy5eSectionFlag = spell.flags['tidy5e-sheet']?.section;
+    if (tidy5eSectionFlag) {
+      mergeData['flags.tidy5e-sheet.section'] = null;
     }
     return foundry.utils.mergeObject(spellData, mergeData);
   }

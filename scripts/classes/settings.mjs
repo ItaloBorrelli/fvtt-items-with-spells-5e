@@ -1,4 +1,4 @@
-import {ItemsWithSpells5e} from "../items-with-spells-5e.js";
+import {ItemsWithSpells5e as IWS} from './defaults.js';
 
 // the item types that can NEVER have spells in them.
 export const EXCLUDED_TYPES = [
@@ -17,7 +17,7 @@ export function _registerSettings() {
   const TYPES = Item.TYPES.filter(t => !EXCLUDED_TYPES.includes(t));
 
   for (const type of TYPES) {
-    game.settings.register(ItemsWithSpells5e.MODULE_ID, `includeItemType${type.titleCase()}`, {
+    game.settings.register(IWS.MODULE_ID, `isIncludedItemType${type.titleCase()}`, {
       scope: "world",
       config: false,
       type: Boolean,
@@ -26,7 +26,7 @@ export function _registerSettings() {
     });
   }
 
-  game.settings.register(ItemsWithSpells5e.MODULE_ID, "sortOrder", {
+  game.settings.register(IWS.MODULE_ID, "sortOrder", {
     name: "IWS.SETTINGS.SORT_ORDER.NAME",
     hint: "IWS.SETTINGS.SORT_ORDER.HINT",
     scope: "world",
@@ -36,7 +36,7 @@ export function _registerSettings() {
     requiresReload: false
   });
 
-  game.settings.registerMenu(ItemsWithSpells5e.MODULE_ID, "itemTypeExclusion", {
+  game.settings.registerMenu(IWS.MODULE_ID, "itemTypeExclusion", {
     name: "IWS.SETTINGS.ITEM_EXCLUSION.NAME",
     hint: "IWS.SETTINGS.ITEM_EXCLUSION.HINT",
     scope: "world",
@@ -46,7 +46,7 @@ export function _registerSettings() {
     restricted: true
   });
 
-  game.settings.register(ItemsWithSpells5e.MODULE_ID, "excludeUnequipped", {
+  game.settings.register(IWS.MODULE_ID, "excludeUnequipped", {
     name: "IWS.SETTINGS.EXCLUDE_UNEQUIPPED.NAME",
     hint: "IWS.SETTINGS.EXCLUDE_UNEQUIPPED.HINT",
     scope: "world",
@@ -60,7 +60,7 @@ export function _registerSettings() {
 class IWS_TypeSettings extends FormApplication {
 
   get id() {
-    return `${ItemsWithSpells5e.MODULE_ID}-item-type-exclusion-menu`;
+    return `${IWS.MODULE_ID}-item-type-exclusion-menu`;
   }
 
   get title() {
@@ -78,7 +78,7 @@ class IWS_TypeSettings extends FormApplication {
     for (const type of TYPES) {
       const label = type.titleCase();
       data.types.push({
-        checked: game.settings.get(ItemsWithSpells5e.MODULE_ID, `includeItemType${label}`),
+        checked: game.settings.get(IWS.MODULE_ID, `isIncludedItemType${label}`),
         value: type,
         label
       });
@@ -88,7 +88,7 @@ class IWS_TypeSettings extends FormApplication {
 
   async _updateObject(event, formData) {
     Object.entries(formData).forEach(([type, bool]) => {
-      game.settings.set(ItemsWithSpells5e.MODULE_ID, `includeItemType${type.titleCase()}`, bool);
+      game.settings.set(IWS.MODULE_ID, `isIncludedItemType${type.titleCase()}`, bool);
     });
   }
 }

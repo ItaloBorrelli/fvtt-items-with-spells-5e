@@ -42,11 +42,18 @@ jobs:
           VERSION: ${{steps.get_version.outputs.version-without-v}}
           DOWNLOAD: https://github.com/${{github.repository}}/releases/download/${{github.event.release.tag_name}}/module.zip
 
+      # Run build
+      - uses: actions/setup-node@v4.0.2
+        with:
+          node-version: '20'
+      - run: npm install
+      - run: npm run build
+
       # Create zip file.
       - name: Create ZIP archive
-        run: zip -r ./module.zip module.json lang/ scripts/ styles/ templates/
+        run: zip -r ./module.zip module.json lang/ scripts/items-with-spells-5e.min.js* styles/ templates/
 
-      # Create a release for this specific version.
+      # Update the GitHub release with the manifest and module archive files.
       - name: Update Release with Files
         id: create_version_release
         uses: ncipollo/release-action@v1
@@ -62,7 +69,7 @@ jobs:
 
       # Update the FoundryVTT website, source: https://github.com/marketplace/actions/publish-foundryvtt-package
       - name: Publish Module to FoundryVTT Website
-        if: "!github.event.release.prerelease"
+        if: !github.event.release.prerelease
         id: publish-to-foundry-website
         uses: cs96and/FoundryVTT-release-package@v1.0.2
         with:

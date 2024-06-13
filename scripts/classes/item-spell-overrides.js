@@ -1,4 +1,4 @@
-import {ItemsWithSpells5e} from '../items-with-spells-5e.js';
+import {ItemsWithSpells5e as IWS} from './defaults.js';
 
 /**
  * The form to control Item Spell overrides (e.g. for consumption logic)
@@ -23,7 +23,7 @@ export class ItemsWithSpells5eItemSpellOverrides extends FormApplication {
   }
 
   get id() {
-    return `${ItemsWithSpells5e.MODULE_ID}-${this.item.id}-${this.itemSpellItem.id}`;
+    return `${IWS.MODULE_ID}-${this.item.id}-${this.itemSpellItem.id}`;
   }
 
   get title() {
@@ -33,7 +33,7 @@ export class ItemsWithSpells5eItemSpellOverrides extends FormApplication {
   static get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
       classes: ['dnd5e', 'sheet', 'item', "iws"],
-      template: ItemsWithSpells5e.TEMPLATES.overrides,
+      template: IWS.TEMPLATES.overrides,
       width: 560,
       closeOnSubmit: false,
       submitOnChange: true,
@@ -52,15 +52,21 @@ export class ItemsWithSpells5eItemSpellOverrides extends FormApplication {
         limitedUsePeriods: CONFIG.DND5E.limitedUsePeriods,
         abilities: CONFIG.DND5E.abilities,
         spellLevels: CONFIG.DND5E.spellLevels,
+        // Temporary custom object to use selectOptions until DnD5e gets v12 compliant
+        saveScaling: {
+          "spell": { label: "DND5E.Spellcasting" },
+          ...CONFIG.DND5E.abilities,
+          "flat": { label: "DND5E.Flat" }
+        }
       },
       isFlatDC: this.object?.system?.save?.scaling === 'flat',
       spell: this.itemSpellItem,
       parentItem: {
         id: this.item.id,
         name: this.item.name,
-        isOwned: this.item.isOwned,
+        isEmbedded: this.item.isEmbedded,
         hasUses: this.item.hasLimitedUses && (uses.per in CONFIG.DND5E.limitedUsePeriods) && (uses.max > 0)
-      },
+      }
     };
     return ret;
   }
@@ -70,7 +76,7 @@ export class ItemsWithSpells5eItemSpellOverrides extends FormApplication {
     await this.itemWithSpellsItem.updateItemSpellOverrides(this.itemSpellId, formDataExpanded.overrides);
     this.object = formDataExpanded.overrides;
 
-    if (this.item.isOwned) {
+    if (this.item.isEmbedded) {
       ui.notifications.warn('The existing spells on the parent actor will not be modified to reflect this change.');
     }
 
