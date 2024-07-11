@@ -32,7 +32,11 @@ export class ItemsWithSpells5eActor {
     }, []);
 
     if (!spellIds.length) return;
-    const confirm = options.itemsWithSpells5e?.alsoDeleteChildSpells ?? await Dialog.confirm({
+
+    // Ask the player to confirm spell deletion, unless the option for this is set, or unless the item is unidentified and the player doesn't know spells are attached (always ask for GM)
+    const optionOverride = options.itemsWithSpells5e?.alsoDeleteChildSpells;
+    const autoConfirm = !game.user.isGM && itemDeleted.system?.identified === false;
+    const confirm = optionOverride ?? autoConfirm ? true : await Dialog.confirm({
       title: game.i18n.localize("IWS.MODULE_NAME"),
       content: game.i18n.localize("IWS.QUERY_ALSO_DELETE")
     });

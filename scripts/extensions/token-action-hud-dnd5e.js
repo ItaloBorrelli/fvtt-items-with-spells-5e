@@ -63,8 +63,8 @@ export class ItemsWithSpells5eExtendHUD {
             if ( !itemUsable ) continue
 
             // get spells of item
-            const itemSpells = await IWSitem.getItemSpells(item, true, this.actor.items)
-            if ( !itemSpells ) continue
+            const actionData = await IWSitem.getItemSpells(item, true, this.actor.items)
+            if ( !actionData ) continue
 
             // Create a group for this item
             const info1 = {}
@@ -89,11 +89,9 @@ export class ItemsWithSpells5eExtendHUD {
             this.actionHandler.addGroup(groupData, parentGroupData)
 
             // Add actions to the group, using the TAH DnD5e Build Actions
-            const data = {
-              groupData: groupData,
-              actionData: itemSpells,
-              actionType: 'spell'
-            }
+            const actionType = 'spell'
+            const data = { groupData, actionData, actionType }
+            console.log('data: ', data)
             await this.actionHandler.buildActions(data)
           }
         }
